@@ -1,0 +1,10 @@
+{
+    "id": "backlog-converter",
+    "name": "Backlog Markdown Converter",
+    "version": "1.0.0",
+    "minAppVersion": "0.15.0",
+    "description": "MarkdownファイルをBacklog記法に変換、またはBacklog記法から標準Markdownに変換するプラグイン",
+    "author": "Junpei Takagi",
+    "authorUrl": "https://github.com/junpei-takagi",
+    "isDesktopOnly": false
+}

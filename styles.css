@@ -1,0 +1,653 @@
+/* Backlog Converter Plugin Styles */
+
+.conversion-preview-container {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    max-height: 70vh;
+    overflow-y: auto;
+}
+
+.conversion-preview-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 2px solid var(--background-modifier-border);
+}
+
+.conversion-preview-header h2 {
+    margin: 0;
+    flex: 1;
+}
+
+.preview-section {
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 6px;
+    padding: 16px;
+    background: var(--background-secondary);
+}
+
+.preview-section h3 {
+    margin: 0 0 12px 0;
+    color: var(--text-accent);
+    font-size: 1.1em;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.preview-section h3::before {
+    content: "📝";
+    font-size: 1.2em;
+}
+
+.preview-section.backlog-output h3::before {
+    content: "🔄";
+    font-size: 1.2em;
+}
+
+.preview-section pre {
+    margin: 0;
+    padding: 12px;
+    background: var(--background-primary);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 4px;
+    overflow-x: auto;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.preview-section pre code {
+    font-family: var(--font-monospace);
+    font-size: 0.9em;
+    line-height: 1.4;
+    white-space: pre-wrap;
+}
+
+.modal-button-container {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 20px;
+    padding-top: 16px;
+    border-top: 1px solid var(--background-modifier-border);
+}
+
+.modal-button-container button {
+    padding: 8px 16px;
+    border-radius: 4px;
+    border: 1px solid var(--background-modifier-border);
+    background: var(--interactive-normal);
+    color: var(--text-normal);
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.modal-button-container button:hover {
+    background: var(--interactive-hover);
+}
+
+.modal-button-container button.mod-cta {
+    background: var(--interactive-accent);
+    color: var(--text-on-accent);
+    border-color: var(--interactive-accent);
+}
+
+.modal-button-container button.mod-cta:hover {
+    background: var(--interactive-accent-hover);
+}
+
+/* カスタムルール設定のスタイル */
+.custom-rule-container {
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 6px;
+    padding: 16px;
+    margin-bottom: 12px;
+    background: var(--background-secondary);
+}
+
+.custom-rule-container .setting-item {
+    border: none;
+    padding: 8px 0;
+}
+
+.custom-rule-container .setting-item:not(:last-child) {
+    border-bottom: 1px solid var(--background-modifier-border);
+}
+
+.custom-rule-container .setting-item-name {
+    font-weight: 600;
+    color: var(--text-accent);
+}
+
+.custom-rule-container .setting-item-control input[type="text"] {
+    margin-right: 8px;
+    flex: 1;
+    min-width: 0;
+}
+
+.custom-rule-container .setting-item-control {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* 設定項目のレスポンシブ対応 */
+@media (max-width: 768px) {
+    .conversion-preview-container {
+        max-height: 60vh;
+    }
+    
+    .preview-section pre {
+        max-height: 200px;
+        font-size: 0.8em;
+    }
+    
+    .custom-rule-container .setting-item-control {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .custom-rule-container .setting-item-control input[type="text"] {
+        margin-right: 0;
+        margin-bottom: 8px;
+    }
+}
+
+/* 変換進行中のスタイル */
+.conversion-in-progress {
+    position: relative;
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+.conversion-in-progress::after {
+    content: "変換中...";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: var(--background-primary);
+    padding: 8px 16px;
+    border-radius: 4px;
+    border: 1px solid var(--background-modifier-border);
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-accent);
+}
+
+/* 変換結果のハイライト */
+.conversion-highlight {
+    background: var(--text-selection);
+    padding: 2px 4px;
+    border-radius: 3px;
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        background: var(--text-accent);
+    }
+    to {
+        opacity: 1;
+        background: var(--text-selection);
+    }
+}
+
+/* Backlog記法プレビューのスタイル */
+.backlog-preview {
+    font-family: var(--font-monospace);
+    background: var(--background-primary-alt);
+    border-left: 4px solid var(--text-accent);
+    padding: 16px;
+    margin: 12px 0;
+    border-radius: 0 6px 6px 0;
+}
+
+/* Backlog記法の各要素のスタイル */
+.backlog-preview .backlog-heading {
+    color: var(--text-accent);
+    font-weight: 600;
+    margin: 8px 0;
+    border-left: 3px solid var(--text-accent);
+    padding-left: 8px;
+}
+
+/* Backlog見出し階層別スタイル */
+.backlog-preview h1.backlog-heading {
+    font-size: 1.6em;
+    border-left-width: 4px;
+    background: linear-gradient(90deg, var(--background-modifier-hover) 0%, transparent 100%);
+}
+
+.backlog-preview h2.backlog-heading {
+    font-size: 1.4em;
+    border-left-width: 3px;
+    opacity: 0.95;
+}
+
+.backlog-preview h3.backlog-heading {
+    font-size: 1.2em;
+    border-left-width: 2px;
+    opacity: 0.9;
+}
+
+.backlog-preview h4.backlog-heading {
+    font-size: 1.1em;
+    border-left-width: 2px;
+    opacity: 0.85;
+    color: var(--text-muted);
+}
+
+.backlog-preview h5.backlog-heading {
+    font-size: 1.05em;
+    border-left-width: 1px;
+    opacity: 0.8;
+    color: var(--text-muted);
+}
+
+.backlog-preview h6.backlog-heading {
+    font-size: 1em;
+    border-left-width: 1px;
+    opacity: 0.75;
+    color: var(--text-muted);
+}
+
+.backlog-preview .backlog-bold {
+    background: rgba(255, 215, 0, 0.2);
+    padding: 1px 3px;
+    border-radius: 2px;
+    font-weight: 600;
+}
+
+.backlog-preview .backlog-italic {
+    background: rgba(135, 206, 235, 0.2);
+    padding: 1px 3px;
+    border-radius: 2px;
+    font-style: italic;
+}
+
+.backlog-preview .backlog-strike {
+    background: rgba(255, 99, 71, 0.2);
+    padding: 1px 3px;
+    border-radius: 2px;
+    text-decoration: line-through;
+}
+
+.backlog-preview .backlog-color-red {
+    color: #e74c3c;
+    background: rgba(231, 76, 60, 0.1);
+    padding: 2px 4px;
+    border-radius: 3px;
+    font-weight: 600;
+}
+
+.backlog-preview .backlog-color-green {
+    color: #27ae60;
+    background: rgba(39, 174, 96, 0.1);
+    padding: 2px 4px;
+    border-radius: 3px;
+    font-weight: 600;
+}
+
+.backlog-preview .backlog-color-blue {
+    color: #3498db;
+    background: rgba(52, 152, 219, 0.1);
+    padding: 2px 4px;
+    border-radius: 3px;
+    font-weight: 600;
+}
+
+.backlog-preview .backlog-link {
+    color: var(--text-accent);
+    background: rgba(116, 125, 232, 0x1);
+    padding: 1px 3px;
+    border-radius: 2px;
+    text-decoration: underline;
+}
+
+.backlog-preview .backlog-image {
+    color: var(--text-accent);
+    background: rgba(139, 69, 19, 0.2);
+    padding: 2px 4px;
+    border-radius: 3px;
+    font-weight: 500;
+}
+
+.backlog-preview .backlog-code-block {
+    background: var(--background-secondary);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 4px;
+    padding: 12px;
+    margin: 8px 0;
+    overflow-x: auto;
+}
+
+.backlog-preview .backlog-quote {
+    background: var(--background-secondary-alt);
+    border-left: 3px solid var(--text-accent);
+    padding: 8px 12px;
+    margin: 8px 0;
+    font-style: italic;
+}
+
+/* Backlog階層リスト表示（レベル別インデント） */
+.backlog-preview .backlog-list-item {
+    margin: 4px 0;
+    position: relative;
+    line-height: 1.4;
+}
+
+/* レベル別の階層表示（- -- --- ---- ----- ------） */
+.backlog-preview .backlog-list-level-1 {
+    padding-left: 0;
+    font-weight: 500;
+}
+
+.backlog-preview .backlog-list-level-2 {
+    padding-left: 20px;
+    position: relative;
+}
+
+.backlog-preview .backlog-list-level-2::before {
+    content: "";
+    position: absolute;
+    left: 8px;
+    top: 50%;
+    width: 8px;
+    height: 1px;
+    background: var(--text-muted);
+}
+
+.backlog-preview .backlog-list-level-3 {
+    padding-left: 40px;
+    position: relative;
+}
+
+.backlog-preview .backlog-list-level-3::before {
+    content: "";
+    position: absolute;
+    left: 8px;
+    top: 50%;
+    width: 28px;
+    height: 1px;
+    background: var(--text-muted);
+}
+
+.backlog-preview .backlog-list-level-4 {
+    padding-left: 60px;
+    position: relative;
+}
+
+.backlog-preview .backlog-list-level-4::before {
+    content: "";
+    position: absolute;
+    left: 8px;
+    top: 50%;
+    width: 48px;
+    height: 1px;
+    background: var(--text-muted);
+}
+
+.backlog-preview .backlog-list-level-5 {
+    padding-left: 80px;
+    position: relative;
+}
+
+.backlog-preview .backlog-list-level-5::before {
+    content: "";
+    position: absolute;
+    left: 8px;
+    top: 50%;
+    width: 68px;
+    height: 1px;
+    background: var(--text-muted);
+}
+
+.backlog-preview .backlog-list-level-6 {
+    padding-left: 100px;
+    position: relative;
+}
+
+.backlog-preview .backlog-list-level-6::before {
+    content: "";
+    position: absolute;
+    left: 8px;
+    top: 50%;
+    width: 88px;
+    height: 1px;
+    background: var(--text-muted);
+}
+
+/* タブインデント表示用のスタイル */
+.backlog-preview .tab-indent {
+    background: rgba(116, 125, 232, 0.1);
+    border-left: 2px solid var(--text-accent);
+    margin-left: 1px;
+    padding-left: 8px;
+}
+
+/* 階層の視覚的区別 */
+.backlog-preview .backlog-list-level-1 { color: var(--text-normal); }
+.backlog-preview .backlog-list-level-2 { color: var(--text-normal); opacity: 0.95; }
+.backlog-preview .backlog-list-level-3 { color: var(--text-normal); opacity: 0.9; }
+.backlog-preview .backlog-list-level-4 { color: var(--text-muted); opacity: 0.85; }
+.backlog-preview .backlog-list-level-5 { color: var(--text-muted); opacity: 0.8; }
+.backlog-preview .backlog-list-level-6 { color: var(--text-muted); opacity: 0.75; }
+
+.backlog-preview .backlog-task-ref {
+    color: var(--text-accent);
+    background: rgba(116, 125, 232, 0.15);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-weight: 600;
+    border: 1px solid var(--text-accent);
+}
+
+/* 変換タイプ別のインジケーター */
+.conversion-type-indicator {
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 0.8em;
+    font-weight: 600;
+    margin-right: 8px;
+    text-transform: uppercase;
+}
+
+.conversion-type-indicator.markdown-to-backlog {
+    background: rgba(52, 152, 219, 0.2);
+    color: #3498db;
+    border: 1px solid #3498db;
+}
+
+.conversion-type-indicator.backlog-to-markdown {
+    background: rgba(39, 174, 96, 0.2);
+    color: #27ae60;
+    border: 1px solid #27ae60;
+}
+
+/* 変換統計情報のスタイル */
+.conversion-stats {
+    background: var(--background-secondary-alt);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 6px;
+    padding: 12px;
+    margin: 12px 0;
+    font-size: 0.9em;
+}
+
+.conversion-stats h4 {
+    margin: 0 0 8px 0;
+    color: var(--text-accent);
+    font-size: 1em;
+}
+
+.conversion-stats .stat-item {
+    display: flex;
+    justify-content: space-between;
+    margin: 4px 0;
+    padding: 2px 0;
+}
+
+.conversion-stats .stat-value {
+    font-weight: 600;
+    color: var(--text-accent);
+}
+
+/* 成功・エラーメッセージのスタイル */
+.conversion-success {
+    background: rgba(39, 174, 96, 0.1);
+    border: 1px solid #27ae60;
+    color: #27ae60;
+    padding: 12px;
+    border-radius: 6px;
+    margin: 12px 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.conversion-success::before {
+    content: "✅";
+    font-size: 1.2em;
+}
+
+.conversion-error {
+    background: rgba(231, 76, 60, 0.1);
+    border: 1px solid #e74c3c;
+    color: #e74c3c;
+    padding: 12px;
+    border-radius: 6px;
+    margin: 12px 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.conversion-error::before {
+    content: "❌";
+    font-size: 1.2em;
+}
+
+/* ダークテーマ対応 */
+.theme-dark .backlog-preview .backlog-bold {
+    background: rgba(255, 215, 0, 0.15);
+}
+
+.theme-dark .backlog-preview .backlog-italic {
+    background: rgba(135, 206, 235, 0.15);
+}
+
+.theme-dark .backlog-preview .backlog-strike {
+    background: rgba(255, 99, 71, 0.15);
+}
+
+/* ダークテーマでの階層リスト表示調整 */
+.theme-dark .backlog-preview .backlog-list-level-2::before,
+.theme-dark .backlog-preview .backlog-list-level-3::before,
+.theme-dark .backlog-preview .backlog-list-level-4::before,
+.theme-dark .backlog-preview .backlog-list-level-5::before,
+.theme-dark .backlog-preview .backlog-list-level-6::before {
+    background: var(--text-faint);
+}
+
+.theme-dark .backlog-preview .tab-indent {
+    background: rgba(116, 125, 232, 0.08);
+    border-left-color: rgba(116, 125, 232, 0.5);
+}
+
+/* ダークテーマでの階層色調整 */
+.theme-dark .backlog-preview .backlog-list-level-4,
+.theme-dark .backlog-preview .backlog-list-level-5,
+.theme-dark .backlog-preview .backlog-list-level-6 {
+    color: var(--text-faint);
+}
+
+/* ダークテーマでの見出し表示調整 */
+.theme-dark .backlog-preview h1.backlog-heading {
+    background: linear-gradient(90deg, var(--background-modifier-border) 0%, transparent 100%);
+    border-left-color: var(--text-accent);
+}
+
+.theme-dark .backlog-preview h2.backlog-heading,
+.theme-dark .backlog-preview h3.backlog-heading {
+    border-left-color: var(--text-accent);
+}
+
+.theme-dark .backlog-preview h4.backlog-heading,
+.theme-dark .backlog-preview h5.backlog-heading,
+.theme-dark .backlog-preview h6.backlog-heading {
+    border-left-color: var(--text-faint);
+    color: var(--text-faint);
+}
+
+/* クイック変換モーダルのスタイル */
+.quick-conversion-header {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.quick-conversion-header h2 {
+    margin: 0 0 8px 0;
+    color: var(--text-accent);
+}
+
+.quick-conversion-header p {
+    margin: 0;
+    color: var(--text-muted);
+    font-size: 0.9em;
+}
+
+.quick-conversion-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    max-width: 300px;
+    margin: 0 auto;
+}
+
+.quick-conversion-btn {
+    padding: 12px 16px;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 6px;
+    background: var(--background-primary);
+    color: var(--text-normal);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 0.9em;
+    font-weight: 500;
+}
+
+.quick-conversion-btn:hover {
+    background: var(--background-modifier-hover);
+    border-color: var(--text-accent);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.quick-conversion-btn.mod-cta {
+    background: var(--interactive-accent);
+    color: var(--text-on-accent);
+    border-color: var(--interactive-accent);
+}
+
+.quick-conversion-btn.mod-cta:hover {
+    background: var(--interactive-accent-hover);
+    border-color: var(--interactive-accent-hover);
+}
+
+/* ステータスバーボタンのスタイル */
+.status-bar-item.plugin-backlog-converter {
+    cursor: pointer;
+    padding: 2px 8px;
+    border-radius: 4px;
+    transition: background-color 0.2s ease;
+}
+
+.status-bar-item.plugin-backlog-converter:hover {
+    background: var(--background-modifier-hover);
+}
