@@ -1,0 +1,2 @@
+# obsidian-backlog-converter
+Obsidian用プラグイン Markdown形式で記載されたファイルをBacklog形式に変換します。
