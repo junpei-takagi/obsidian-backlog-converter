@@ -18,34 +18,70 @@ ObsidianでMarkdownファイルをBacklog記法に変換、またはBacklog記�
 #### MarkdownからBacklog記法
 | 変換前（Markdown） | 変換後（Backlog記法） | 説明 |
 |---|---|---|
-| `[BLG-123](https://example.backlog.jp/view/BLG-123)` | `#BLG-123` | 課題URLを課題参照に |
-| `**重要**` | `--{color:red}重要--` | 重要語句を赤色テキストに |
-| `**成功**` | `--{color:green}成功--` | 成功語句を緑色テキストに |
-| `**情報**` | `--{color:blue}情報--` | 情報語句を青色テキストに |
-| `` `keyword` `` | `&keyword&` | インラインコードをキーワード参照に |
-| `MYPRJ` | `^MYPRJ^` | プロジェクトキーをプロジェクト参照に |
+| `# 見出し1` | `* 見出し1` | 見出しレベルに応じて*の数が変わる |
+| `**太字**` | `''太字''` | 太字を二重クォートに変換 |
+| `*斜体*` | `'''斜体'''` | 斜体を三重クォートに変換 |
+| `~~打ち消し~~` | `%%打ち消し%%` | 打ち消し線をパーセント記号に変換 |
+| `- リスト項目` | `- リスト項目` | リストは階層レベルに応じてダッシュの数が変わる |
+| `1. 番号付きリスト` | `+ 番号付きリスト` | 番号付きリストをプラス記号に変換 |
+| `` ```code``` `` | `{code}code{/code}` | コードブロックをBacklog記法に変換 |
+| `[リンク](URL)` | `[[リンク>URL]]` | リンクをBacklog記法に変換 |
+| `![画像](URL)` | `#image(URL)` | 画像をBacklog記法に変換 |
+| `**重要**` | `&color(red) { 重要 }` | 重要語句を赤色テキストに |
+| `**成功**` | `&color(green) { 成功 }` | 成功語句を緑色テキストに |
+| `**情報**` | `&color(blue) { 情報 }` | 情報語句を青色テキストに |
 
 #### Backlog記法からMarkdown
 | 変換前（Backlog記法） | 変換後（Markdown） | 説明 |
 |---|---|---|
-| `#BLG-123` | `[BLG-123](https://example.backlog.jp/view/BLG-123)` | 課題参照をMarkdownリンクに |
-| `--{color:red}重要--` | `**重要**` | 色付きテキストを強調テキストに |
-| `^MYPRJ^` | `MYPRJ` | プロジェクト参照を通常テキストに |
-| `&keyword&` | `` `keyword` `` | キーワード参照をインラインコードに |
+| `* 見出し1` | `# 見出し1` | 見出しレベルに応じて#の数が変わる |
+| `''太字''` | `**太字**` | 二重クォートを太字に変換 |
+| `'''斜体'''` | `*斜体*` | 三重クォートを斜体に変換 |
+| `%%打ち消し%%` | `~~打ち消し~~` | パーセント記号を打ち消し線に変換 |
+| `- リスト項目` | `- リスト項目` | 階層レベルに応じてインデント付きリストに変換 |
+| `+ 番号付きリスト` | `1. 番号付きリスト` | プラス記号を番号付きリストに変換 |
+| `{code}code{/code}` | `` ```code``` `` | コードブロックをMarkdown記法に変換 |
+| `[[リンク>URL]]` | `[リンク](URL)` | Backlogリンクを標準Markdownリンクに変換 |
+| `#image(URL)` | `![](URL)` | 画像をMarkdown記法に変換 |
+| `&color(red) { 重要 }` | `**重要**` | 色付きテキストを強調テキストに |
+| `{quote}引用{/quote}` | `> 引用` | 引用ブロックをMarkdown記法に変換 |
+| `#contents` | `[TOC]` | 目次をMarkdown記法に変換 |
 
 ## インストール
 
 ### 手動インストール
-1. 本リポジトリをクローンまたはダウンロード
-2. プラグインファイルをObsidianのプラグインディレクトリにコピー
+
+#### 方法1: リリース版を使用（推奨）
+1. [Releases](../../releases)から最新の`obsidian-backlog-converter-x.x.x.zip`をダウンロード
+2. ZIPファイルを解凍
+3. 解凍したフォルダを以下の場所にコピー：
+   ```
+   {Obsidianのボルト}/.obsidian/plugins/
+   ```
+   最終的なディレクトリ構造：
    ```
    .obsidian/plugins/backlog-converter/
    ├── main.js
    ├── manifest.json
-   └── styles.css (オプション)
+   ├── styles.css
+   └── README.md
    ```
-3. Obsidianを再起動
-4. 設定 → コミュニティプラグイン → "Backlog Markdown Converter"を有効化
+4. Obsidianを再起動
+5. 設定 → コミュニティプラグイン → "Backlog Markdown Converter"を有効化
+
+#### 方法2: ソースからビルド
+1. 本リポジトリをクローン
+   ```bash
+   git clone [repository-url]
+   cd obsidian-backlog-converter
+   ```
+2. 依存関係をインストールしてビルド
+   ```bash
+   npm install
+   npm run release
+   ```
+3. `release/obsidian-backlog-converter/`フォルダを`.obsidian/plugins/backlog-converter/`にコピー
+4. Obsidianを再起動してプラグインを有効化
 
 ### 開発環境でのビルド
 ```bash
@@ -71,11 +107,13 @@ npm run release
 2. 以下の情報を設定：
    - **Backlog Base URL**: BacklogのベースURL（例：`https://yourproject.backlog.jp`）
    - **Project Key**: プロジェクトキー（例：`MYPRJ`）
+   - **自動変換を有効にする**: ファイル保存時の自動変換（実験的機能）
+   - **タブインデントを使用**: リストの階層表現にタブインデントを使用（オフの場合は2スペース）
 
 ### 2. 変換の実行
 
 #### リボンアイコンから実行（推奨）
-1. 左サイドバーの**B**アイコン（Backlog変換）をクリック
+1. 左サイドバーの太字アイコン（Backlog変換）をクリック
 2. 表示されるメニューから変換方向を選択：
    - **Markdown → Backlog記法に変換**
    - **Backlog記法 → Markdownに変換**
@@ -106,7 +144,7 @@ npm run release
 
 **例**:
 - パターン: `\\[TODO\\]`
-- 置換: `--{color:orange}TODO--`
+- 置換: `&color(orange) { TODO }`
 
 ## 注意事項
 
@@ -139,6 +177,12 @@ A: 以下を確認してください：
 **Q: 課題URLの変換が機能しない**
 A: 設定でBacklog Base URLとProject Keyが正しく設定されているか確認してください。
 
+**Q: リストの階層表示が正しくない**
+A: 設定でタブインデントの使用方法を確認してください。Markdownファイルのインデント方式（タブまたはスペース）と設定を合わせる必要があります。
+
+**Q: プレビューで文字化けやスタイルが崩れる**
+A: Obsidianのテーマ設定を確認してください。プラグインはライト/ダークテーマの両方に対応しています。
+
 ## 開発
 
 ### 開発環境の構築
@@ -161,42 +205,44 @@ npm run dev
 ### コントリビューション
 プルリクエストやイシューの報告を歓迎します。
 
-## ライセンス
-MIT License
+## 技術仕様
+
+### サポートされるBacklog記法要素
+- **見出し**: `*` `**` `***` `****` `*****` `******` (最大6レベル)
+- **テキスト装飾**: 太字(`''text''`)、斜体(`'''text'''`)、打ち消し線(`%%text%%`)
+- **リスト**: 箇条書き(`-` `--` `---`)、番号付き(`+`)
+- **リンク**: `[[text>URL]]` または `[[text:URL]]`
+- **画像**: `#image(URL)`
+- **コードブロック**: `{code}code{/code}`
+- **引用**: `{quote}text{/quote}`
+- **色指定**: `&color(red|green|blue) { text }`
+- **課題参照**: プロジェクトキー設定時の自動変換
+- **目次**: `#contents`
+
+### 変換ルールの詳細
+プラグインは正規表現ベースの変換ルールを使用し、以下の順序で処理を行います：
+1. 見出しの変換（他のルールとの競合を避けるため最初に処理）
+2. テキスト装飾（太字→斜体の順序で処理）
+3. リスト項目（インデントレベルの自動検出）
+4. リンクと画像
+5. コードブロック
+6. 特殊要素（色指定、引用など）
+7. カスタムルール
 
 ## 更新履歴
 
 ### v1.0.0
 - 初回リリース
-- 基本的な変換機能
-- プレビュー機能
-- カスタムルール機能
-- 設定画面
+- 基本的な変換機能（Markdown ⇄ Backlog記法）
+- リアルタイムプレビュー機能
+- カスタム変換ルール機能
+- 詳細な設定画面
+- リボンアイコンとステータスバーからのアクセス
+- クイック変換モーダル
+- タブ/スペースインデント設定
+- 階層リスト対応（最大6レベル）
+- 豊富なスタイリング（ダークテーマ対応）
 
 ## ライセンス
 
 このプロジェクトは [MIT License](LICENSE) の下で公開されています。
-
-```
-MIT License
-
-Copyright (c) 2025 Obsidian Backlog Converter
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-```
