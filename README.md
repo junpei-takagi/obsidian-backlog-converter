@@ -27,9 +27,6 @@ ObsidianでMarkdownファイルをBacklog記法に変換、またはBacklog記�
 | `` ```code``` `` | `{code}code{/code}` | コードブロックをBacklog記法に変換 |
 | `[リンク](URL)` | `[[リンク>URL]]` | リンクをBacklog記法に変換 |
 | `![画像](URL)` | `#image(URL)` | 画像をBacklog記法に変換 |
-| `**重要**` | `&color(red) { 重要 }` | 重要語句を赤色テキストに |
-| `**成功**` | `&color(green) { 成功 }` | 成功語句を緑色テキストに |
-| `**情報**` | `&color(blue) { 情報 }` | 情報語句を青色テキストに |
 
 #### Backlog記法からMarkdown
 | 変換前（Backlog記法） | 変換後（Markdown） | 説明 |
@@ -43,7 +40,6 @@ ObsidianでMarkdownファイルをBacklog記法に変換、またはBacklog記�
 | `{code}code{/code}` | `` ```code``` `` | コードブロックをMarkdown記法に変換 |
 | `[[リンク>URL]]` | `[リンク](URL)` | Backlogリンクを標準Markdownリンクに変換 |
 | `#image(URL)` | `![](URL)` | 画像をMarkdown記法に変換 |
-| `&color(red) { 重要 }` | `**重要**` | 色付きテキストを強調テキストに |
 | `{quote}引用{/quote}` | `> 引用` | 引用ブロックをMarkdown記法に変換 |
 | `#contents` | `[TOC]` | 目次をMarkdown記法に変換 |
 
@@ -215,7 +211,6 @@ npm run dev
 - **画像**: `#image(URL)`
 - **コードブロック**: `{code}code{/code}`
 - **引用**: `{quote}text{/quote}`
-- **色指定**: `&color(red|green|blue) { text }`
 - **課題参照**: プロジェクトキー設定時の自動変換
 - **目次**: `#contents`
 
@@ -226,7 +221,7 @@ npm run dev
 3. リスト項目（インデントレベルの自動検出）
 4. リンクと画像
 5. コードブロック
-6. 特殊要素（色指定、引用など）
+6. 特殊要素（引用など）
 7. カスタムルール
 
 ## 更新履歴
