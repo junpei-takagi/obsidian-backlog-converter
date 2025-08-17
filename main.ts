@@ -1,26 +1,13 @@
 import { App, Editor, MarkdownView, Modal, Notice, Plugin, PluginSettingTab, Setting, Menu } from 'obsidian';
-
-interface BacklogConverterSettings {
-    baseUrl: string;
-    projectKey: string;
-    enableAutoConversion: boolean;
-    customRules: { pattern: string; replacement: string; }[];
-    useTabsForIndent: boolean;  // タブインデントを使用するか
-}
-
-const DEFAULT_SETTINGS: BacklogConverterSettings = {
-    baseUrl: '',
-    projectKey: '',
-    enableAutoConversion: false,
-    customRules: [],
-    useTabsForIndent: true  // デフォルトでタブを使用
-}
+import { BacklogConverter, BacklogConverterSettings, DEFAULT_SETTINGS } from './src/converter';
 
 export default class BacklogConverterPlugin extends Plugin {
     settings: BacklogConverterSettings;
+    private converter: BacklogConverter;
 
     async onload() {
         await this.loadSettings();
+        this.converter = new BacklogConverter();
 
         // リボンアイコン（サイドバーのボタン）を追加
         this.addRibbonIcon('bold', 'Backlog変換', (evt: MouseEvent) => {
@@ -80,7 +67,8 @@ export default class BacklogConverterPlugin extends Plugin {
 
     convertToBacklogFormat(editor: Editor) {
         const content = editor.getValue();
-        const convertedContent = this.applyBacklogConversion(content);
+        this.converter.updateSettings(this.settings);
+        const convertedContent = this.converter.convertToBacklog(content);
         
         editor.setValue(convertedContent);
         new Notice('Backlog記法への変換が完了しました');
@@ -88,7 +76,8 @@ export default class BacklogConverterPlugin extends Plugin {
 
     convertFromBacklogFormat(editor: Editor) {
         const content = editor.getValue();
-        const convertedContent = this.applyMarkdownConversion(content);
+        this.converter.updateSettings(this.settings);
+        const convertedContent = this.converter.convertToMarkdown(content);
         
         editor.setValue(convertedContent);
         new Notice('標準Markdownへの変換が完了しました');
@@ -96,7 +85,8 @@ export default class BacklogConverterPlugin extends Plugin {
 
     previewConversion(editor: Editor) {
         const content = editor.getValue();
-        const convertedContent = this.applyBacklogConversion(content);
+        this.converter.updateSettings(this.settings);
+        const convertedContent = this.converter.convertToBacklog(content);
         
         new ConversionPreviewModal(this.app, content, convertedContent).open();
     }
@@ -180,323 +170,7 @@ export default class BacklogConverterPlugin extends Plugin {
         new QuickConversionModal(this.app, this, activeView.editor).open();
     }
 
-    applyBacklogConversion(content: string): string {
-        let convertedContent = content;
 
-        // 正しいBacklog記法への変換ルール（適用順序が重要）
-        const conversionRules = [
-            // 最初に見出しを処理（他のルールと競合を避けるため）
-            {
-                pattern: /^(#{1,6})\s+(.+)$/gm,
-                replacement: (match: string, hashes: string, title: string) => {
-                    const level = hashes.length;
-                    return '*'.repeat(level) + ' ' + title;
-                }
-            },
-            
-            // 太字を先に処理（見出しの*記号と競合を避けるため）
-            {
-                pattern: /(?<!^[\*\s]*)\*\*([^*]+)\*\*/gm,
-                replacement: "''$1''"
-            },
-            
-            // 斜体は太字処理後に実行（見出しの*記号と競合を回避）
-            {
-                pattern: /(?<!^[\*\s]*)\*([^*]+)\*(?!\*)/gm,
-                replacement: "'''$1'''"
-            },
-            
-            // 打ち消し線: ~~text~~ → %%text%%
-            {
-                pattern: /~~([^~]+)~~/g,
-                replacement: '%%$1%%'
-            },
-            
-            // 箇条書きリスト: タブ・スペース混在インデントに対応
-            {
-                pattern: /^([\s\t]*)-\s+(.+)$/gm,
-                replacement: (match: string, indent: string, content: string) => {
-                    // インデントレベルを柔軟に計算
-                    let level = 1; // デフォルトレベル
-                    
-                    if (indent.length > 0) {
-                        // タブ文字をカウント（タブ = 1レベル）
-                        const tabCount = (indent.match(/\t/g) || []).length;
-                        // スペース文字をカウント（4スペース = 1レベル、2スペースも許容）
-                        const spaceCount = (indent.match(/ /g) || []).length;
-                        const spaceLevels = spaceCount >= 2 ? Math.floor(spaceCount / 2) : 0;
-                        
-                        level = 1 + tabCount + spaceLevels;
-                    }
-                    
-                    // Backlogは最大6レベルまで対応、それ以上は6に制限
-                    level = Math.min(level, 6);
-                    return '-'.repeat(level) + ' ' + content;
-                }
-            },
-            
-            // 数字付きリスト: タブ・スペース混在インデントに対応
-            {
-                pattern: /^([\s\t]*)(\d+)\.\s+(.+)$/gm,
-                replacement: (match: string, indent: string, num: string, content: string) => {
-                    // インデントレベルを計算
-                    let level = 0;
-                    
-                    if (indent.length > 0) {
-                        const tabCount = (indent.match(/\t/g) || []).length;
-                        const spaceCount = (indent.match(/ /g) || []).length;
-                        const spaceLevels = spaceCount >= 2 ? Math.floor(spaceCount / 2) : 0;
-                        level = tabCount + spaceLevels;
-                    }
-                    
-                    // インデントを再構築（Backlogでは番号付きリストもインデントで階層表現）
-                    const backlogIndent = '  '.repeat(level);
-                    return backlogIndent + '+ ' + content;
-                }
-            },
-            
-            // 引用: > → >（そのまま）
-            
-            // インラインコード: `code` → Backlogでは特殊対応なし（そのまま？）
-            
-            // コードブロック: ```code``` → {code}code{/code}
-            {
-                pattern: /```([a-zA-Z]*)\n([\s\S]*?)```/g,
-                replacement: '{code}\n$2{/code}'
-            },
-            
-            // URL: [text](url) → [[text>url]] または [[text:url]]
-            {
-                pattern: /\[([^\]]+)\]\(([^)]+)\)/g,
-                replacement: '[[$1>$2]]'
-            },
-            
-            // 課題参照: #123 → BLG-123 (プロジェクトキー設定時)
-            {
-                pattern: /#(\d+)/g,
-                replacement: this.settings.projectKey ? `${this.settings.projectKey}-$1` : '#$1'
-            },
-            
-            // Wikiページ: [[WikiPageName]] → そのまま
-            
-            // テーブル: Markdown形式 → Backlog形式
-            {
-                pattern: /^\|(.+)\|$/gm,
-                replacement: (match: string, content: string) => {
-                    // ヘッダー区切り行は削除
-                    if (content.match(/^[\s\-\|:]+$/)) {
-                        return '';
-                    }
-                    return '|' + content + '|';
-                }
-            },
-            
-            // 画像: ![alt](url) → #image(url)
-            {
-                pattern: /!\[([^\]]*)\]\(([^)]+)\)/g,
-                replacement: '#image($2)'
-            },
-            
-            // Backlog独自機能
-            // 色指定（特定の重要語句）
-            {
-                pattern: /\*\*(重要|注意|警告|エラー|危険)\*\*/g,
-                replacement: '&color(red) { $1 }'
-            },
-            
-            {
-                pattern: /\*\*(成功|完了|OK)\*\*/g,
-                replacement: '&color(green) { $1 }'
-            },
-            
-            {
-                pattern: /\*\*(情報|参考|メモ)\*\*/g,
-                replacement: '&color(blue) { $1 }'
-            },
-            
-            // 引用ブロック: > 複数行 → {quote}内容{/quote}
-            {
-                pattern: /^>\s*(.+)(?:\n^>\s*(.+))*/gm,
-                replacement: (match: string) => {
-                    const lines = match.split('\n').map(line => line.replace(/^>\s*/, '')).join('\n');
-                    return `{quote}\n${lines}\n{/quote}`;
-                }
-            },
-            
-            // リビジョンリンク
-            {
-                pattern: /#rev\((\d+)\)/g,
-                replacement: '#rev($1)'
-            },
-            
-            {
-                pattern: /#rev\(([^:]+):([^)]+)\)/g,
-                replacement: '#rev($1:$2)'
-            },
-            
-            // 目次
-            {
-                pattern: /^\[TOC\]$/gm,
-                replacement: '#contents'
-            },
-            
-            // 改行処理（&br;は不要なので削除）
-            // Backlogでは通常の改行がそのまま使用されるため、&br;変換は行わない
-        ];
-
-        // 変換ルールを適用
-        conversionRules.forEach(rule => {
-            if (typeof rule.replacement === 'string') {
-                convertedContent = convertedContent.replace(rule.pattern, rule.replacement);
-            } else {
-                convertedContent = convertedContent.replace(rule.pattern, rule.replacement);
-            }
-        });
-
-        // カスタムルールを適用
-        this.settings.customRules.forEach(rule => {
-            try {
-                const regex = new RegExp(rule.pattern, 'g');
-                convertedContent = convertedContent.replace(regex, rule.replacement);
-            } catch (error) {
-                console.warn('Invalid custom rule pattern:', rule.pattern);
-            }
-        });
-
-        return convertedContent;
-    }
-
-    applyMarkdownConversion(content: string): string {
-        let convertedContent = content;
-
-        // Backlog記法から標準Markdownへの逆変換ルール
-        const conversionRules = [
-            // 見出し: * → #
-            {
-                pattern: /^(\*{1,6})\s+(.+)$/gm,
-                replacement: (match: string, stars: string, title: string) => {
-                    const level = stars.length;
-                    return '#'.repeat(level) + ' ' + title;
-                }
-            },
-            
-            // 太字: ''text'' → **text**
-            {
-                pattern: /''([^']+)''/g,
-                replacement: '**$1**'
-            },
-            
-            // 斜体: '''text''' → *text*
-            {
-                pattern: /'''([^']+)'''/g,
-                replacement: '*$1*'
-            },
-            
-            // 打ち消し線: %%text%% → ~~text~~
-            {
-                pattern: /%%([^%]+)%%/g,
-                replacement: '~~$1~~'
-            },
-            
-            // 箇条書きリスト: - -- --- → タブ/スペースインデント付き-
-            {
-                pattern: /^(-{1,6})\s+(.+)$/gm,
-                replacement: (match: string, dashes: string, content: string) => {
-                    // ダッシュの数から階層レベルを計算
-                    const level = dashes.length - 1;
-                    
-                    // 設定に応じてタブまたはスペースを使用
-                    const indent = this.settings.useTabsForIndent 
-                        ? '\t'.repeat(level)           // タブインデント
-                        : '  '.repeat(level);          // 2スペースインデント
-                    
-                    return indent + '- ' + content;
-                }
-            },
-            
-            // 数字付きリスト: + → タブ/スペースインデント付き1.
-            {
-                pattern: /^(\s*)\+\s+(.+)$/gm,
-                replacement: (match: string, indent: string, content: string) => {
-                    // スペースインデントからタブ/スペースインデントに変換
-                    if (this.settings.useTabsForIndent && indent.length > 0) {
-                        // スペース数をタブ数に変換（2スペース = 1タブ）
-                        const tabCount = Math.floor(indent.length / 2);
-                        const newIndent = '\t'.repeat(tabCount);
-                        return newIndent + '1. ' + content;
-                    } else {
-                        // スペースインデントのまま使用
-                        return indent + '1. ' + content;
-                    }
-                }
-            },
-            
-            // コードブロック: {code}code{/code} → ```code```
-            {
-                pattern: /\{code\}\n?([\s\S]*?)\{\/code\}/g,
-                replacement: '```\n$1\n```'
-            },
-            
-            // URL: [[text>url]] → [text](url)
-            {
-                pattern: /\[\[([^>\]]+)>([^\]]+)\]\]/g,
-                replacement: '[$1]($2)'
-            },
-            
-            // URL: [[text:url]] → [text](url)
-            {
-                pattern: /\[\[([^:\]]+):([^\]]+)\]\]/g,
-                replacement: '[$1]($2)'
-            },
-            
-            // 課題参照: BLG-123 → #123 (プロジェクトキーを削除)
-            {
-                pattern: new RegExp(`\\b${this.settings.projectKey || '[A-Z]+'}-(\\d+)\\b`, 'g'),
-                replacement: '#$1'
-            },
-            
-            // 画像: #image(url) → ![](url)
-            {
-                pattern: /#image\(([^)]+)\)/g,
-                replacement: '![]($1)'
-            },
-            
-            // 改行処理（&br;は使用しないため、この変換も削除）
-            
-            // Backlog独自機能の逆変換
-            // 色指定: &color(色) { テキスト } → **テキスト**
-            {
-                pattern: /&color\([^)]+\)\s*\{\s*([^}]+)\s*\}/g,
-                replacement: '**$1**'
-            },
-            
-            // 引用ブロック: {quote}内容{/quote} → > 内容
-            {
-                pattern: /\{quote\}\n?([\s\S]*?)\{\/quote\}/g,
-                replacement: (match: string, content: string) => {
-                    const lines = content.trim().split('\n');
-                    return lines.map(line => '> ' + line).join('\n');
-                }
-            },
-            
-            // 目次: #contents → [TOC]
-            {
-                pattern: /#contents/g,
-                replacement: '[TOC]'
-            }
-        ];
-
-        // 変換ルールを適用
-        conversionRules.forEach(rule => {
-            if (typeof rule.replacement === 'string') {
-                convertedContent = convertedContent.replace(rule.pattern, rule.replacement);
-            } else {
-                convertedContent = convertedContent.replace(rule.pattern, rule.replacement);
-            }
-        });
-
-        return convertedContent;
-    }
 }
 
 class ConversionPreviewModal extends Modal {
